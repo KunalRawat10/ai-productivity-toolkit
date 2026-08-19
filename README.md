@@ -22,17 +22,21 @@ A lightweight, production-ready AI workflow suite powered by open-weights Small 
 
 ## 🏗️ System Architecture
 
+## 🏗️ System Architecture
+
+```text
 User Input / Web UI (Gradio)
-│
-▼
+        │
+        ▼
 ChatML Prompt Template Engine (Roles, Contexts, Constraints)
-│
-▼
+        │
+        ▼
 Hugging Face Pipeline (SmolLM2-135M-Instruct)
-│  ├── Temperature Calibration (T = 0.2)
-│  ├── Nucleus Sampling (Top-p = 0.9)
-│  └── BPE Tokenizer Decoding
-▼
+        ├── Temperature Calibration (T = 0.2)
+        ├── Nucleus Sampling (Top-p = 0.9)
+        └── BPE Tokenizer Decoding
+        │
+        ▼
 Clean Structured Output (JSON / Formatted Text / Code)
 
 
