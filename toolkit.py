@@ -1,15 +1,14 @@
 """
 AI Productivity Toolkit
 =======================
-A modular Python framework implementing production-grade prompt engineering,
-structured schema extraction, and automated developer workflows using
-open-weights Small Language Models (SLMs) and Gradio.
+A modular Python framework implementing production prompt engineering,
+zero-shot schema-enforced JSON extraction, code refactoring, and an
+interactive Gradio interface using Hugging Face SmolLM2-1.7B-Instruct.
 
 Author: Kunal Rawat
 """
 
 import os
-from typing import Dict, Any, Optional
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, pipeline
 import gradio as gr
@@ -18,7 +17,7 @@ import gradio as gr
 class AIProductivityToolkit:
     """Core engine handling prompt templates, inference calibration, and structured text generation."""
 
-    def __init__(self, model_id: str = "HuggingFaceTB/SmolLM2-135M-Instruct"):
+    def __init__(self, model_id: str = "HuggingFaceTB/SmolLM2-1.7B-Instruct"):
         self.model_id = model_id
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.dtype = torch.float16 if torch.cuda.is_available() else torch.float32
@@ -36,7 +35,7 @@ class AIProductivityToolkit:
             "text-generation",
             model=self.model,
             tokenizer=self.tokenizer,
-            max_new_tokens=256,
+            max_new_tokens=300,
             temperature=0.2,
             top_p=0.9,
             do_sample=True,
@@ -44,7 +43,7 @@ class AIProductivityToolkit:
         )
 
     def _execute_chat(self, system_prompt: str, user_prompt: str) -> str:
-        """Formats and executes a conversational prompt using model-specific ChatML templates."""
+        """Formats and executes prompts using model-specific ChatML templates."""
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
@@ -56,55 +55,48 @@ class AIProductivityToolkit:
         
         response = self.pipe(formatted_prompt)[0]["generated_text"]
         
-        # Clean ChatML artifacts from response
         if "<|im_start|>assistant" in response:
             clean_output = response.split("<|im_start|>assistant\n")[-1]
             return clean_output.replace("<|im_end|>", "").strip()
         return response.split(user_prompt)[-1].strip()
 
     def summarize_executive(self, text: str) -> str:
-        """Condenses complex technical literature into bullet points and a core takeaway."""
-        system_prompt = (
-            "You are an expert technical editor. Summarize the provided text into exactly 3 crisp, "
-            "informative bullet points followed by a single-sentence 'Key Takeaway:'. Do not add conversational filler."
+        """Condenses complex technical text into 3 bullet points and a key takeaway."""
+        system_prompt = "You are an expert technical editor. Summarize dense information with extreme precision."
+        user_prompt = (
+            f"Summarize the following text into exactly 3 concise, high-signal bullet points followed by a "
+            f"single-sentence 'Key Takeaway:'. Do not copy the text verbatim.\n\nText:\n{text}"
         )
-        return self._execute_chat(system_prompt, text)
+        return self._execute_chat(system_prompt, user_prompt)
 
     def extract_structured_entities(self, text: str) -> str:
-        """Extracts named entities from raw text into a strict, validated JSON schema."""
-        system_prompt = (
-            "You are an automated data extraction engine. Extract structured entities from the input text "
-            "and output strictly valid JSON matching this schema:\n"
-            "{\n"
-            '  "candidate_name": "string",\n'
-            '  "primary_skills": ["skill1", "skill2"],\n'
-            '  "experience_years": "string or int",\n'
-            '  "target_role": "string"\n'
-            "}\n"
-            "Output raw JSON only with no conversational text or markdown code blocks."
+        """Extracts entities from raw text into a validated JSON schema."""
+        system_prompt = "You are a data extraction engine. Extract information into strictly valid JSON."
+        user_prompt = (
+            f"Extract entities from the provided text into this exact JSON schema:\n"
+            f'{{"candidate_name": "string", "primary_skills": ["skill1", "skill2"], "experience_years": "string", "target_role": "string"}}\n\n'
+            f"Text:\n{text}\n\nOutput only raw JSON, no conversational filler or markdown formatting."
         )
-        return self._execute_chat(system_prompt, text)
+        return self._execute_chat(system_prompt, user_prompt)
 
     def code_debugger_refactor(self, code: str, issue_description: str = "Identify bugs and optimize logic") -> str:
-        """Analyzes syntax/logic flaws in code snippets and returns a refactored implementation."""
-        system_prompt = (
-            "You are a senior software engineer. Analyze the code, identify bugs or suboptimal logic, "
-            "provide the corrected code snippet, and explain the fix in two concise sentences."
+        """Analyzes syntax/logic flaws and provides a refactored solution."""
+        system_prompt = "You are a senior software engineer specializing in algorithmic refactoring."
+        user_prompt = (
+            f"Analyze this Python snippet, identify the logic flaw, provide the fixed version, and explain the fix in 2 sentences.\n\n"
+            f"Code:\n```python\n{code}\n```\nIssue/Context: {issue_description}"
         )
-        user_prompt = f"Code:\n```python\n{code}\n```\nIssue/Context: {issue_description}"
         return self._execute_chat(system_prompt, user_prompt)
 
     def cold_outreach_generator(
         self, recipient_name: str, company: str, objective: str, background: str
     ) -> str:
-        """Generates concise, value-oriented professional cold outreach emails."""
-        system_prompt = (
-            "You are a professional communication strategist. Write a high-conversion cold networking email. "
-            "Keep the response under 100 words. Maintain a confident, polite, and value-first tone."
-        )
+        """Generates concise, value-oriented networking emails."""
+        system_prompt = "You are a professional communication strategist. Write concise, high-conversion networking emails."
         user_prompt = (
+            f"Write a value-focused cold networking email under 100 words.\n"
             f"Recipient: {recipient_name}\n"
-            f"Target Organization: {company}\n"
+            f"Company: {company}\n"
             f"Objective: {objective}\n"
             f"Candidate Background: {background}"
         )
@@ -112,17 +104,17 @@ class AIProductivityToolkit:
 
 
 def launch_web_ui(toolkit: AIProductivityToolkit, share: bool = True):
-    """Builds and launches a full-stack Gradio web interface."""
+    """Builds and launches an interactive Gradio web application."""
     
     def handle_request(task, text_input, recipient, company, objective, background):
         if not text_input and task != "Cold Outreach Generator":
             return "Error: Input text/code cannot be empty."
             
-        if task == "Executive Technical Summarizer":
+        if task == "Executive Summarizer":
             return toolkit.summarize_executive(text_input)
-        elif task == "Structured JSON Extractor":
+        elif task == "JSON Entity Extractor":
             return toolkit.extract_structured_entities(text_input)
-        elif task == "Code Debugger & Refactorer":
+        elif task == "Code Debugger & Refactor":
             return toolkit.code_debugger_refactor(text_input)
         elif task == "Cold Outreach Generator":
             return toolkit.cold_outreach_generator(recipient, company, objective, background)
@@ -131,20 +123,20 @@ def launch_web_ui(toolkit: AIProductivityToolkit, share: bool = True):
     with gr.Blocks(title="AI Productivity Toolkit") as demo:
         gr.Markdown("# 🚀 AI Productivity Toolkit")
         gr.Markdown(
-            "An open-source, small language model (SLM) pipeline for automated developer workflows, "
-            "structured generation, and zero-shot entity extraction."
+            "An open-source Small Language Model (SLM) pipeline for automated developer workflows, "
+            "structured JSON generation, and code refactoring."
         )
         
         with gr.Row():
             with gr.Column(scale=1):
                 task_dropdown = gr.Dropdown(
                     choices=[
-                        "Executive Technical Summarizer",
-                        "Structured JSON Extractor",
-                        "Code Debugger & Refactorer",
+                        "Executive Summarizer",
+                        "JSON Entity Extractor",
+                        "Code Debugger & Refactor",
                         "Cold Outreach Generator"
                     ],
-                    value="Executive Technical Summarizer",
+                    value="Executive Summarizer",
                     label="Select Workflow Tool"
                 )
                 
@@ -155,10 +147,10 @@ def launch_web_ui(toolkit: AIProductivityToolkit, share: bool = True):
                 )
                 
                 with gr.Accordion("Outreach Email Parameters (Outreach Generator only)", open=False):
-                    recipient = gr.Textbox(label="Recipient Name / Title", placeholder="e.g., Hiring Manager")
-                    company = gr.Textbox(label="Target Organization", placeholder="e.g., AI Labs")
-                    objective = gr.Textbox(label="Core Objective", placeholder="e.g., Summer Research Internship")
-                    background = gr.Textbox(label="Your Background", placeholder="e.g., Undergraduate AIML Student")
+                    recipient = gr.Textbox(label="Recipient Name / Title", placeholder="e.g., Lead AI Researcher")
+                    company = gr.Textbox(label="Target Organization", placeholder="e.g., Applied AI Labs")
+                    objective = gr.Textbox(label="Core Objective", placeholder="e.g., Research Internship")
+                    background = gr.Textbox(label="Your Background", placeholder="e.g., B.Tech AIML Student")
                 
                 submit_btn = gr.Button("Execute Workflow", variant="primary")
             
