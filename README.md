@@ -6,7 +6,7 @@
 [![Gradio](https://img.shields.io/badge/UI-Gradio%20App-orange)](https://gradio.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-A lightweight, production-ready AI workflow suite powered by open-weights Small Language Models (SLMs). This toolkit demonstrates role conditioning, schema-enforced JSON extraction, code debugging, and interactive browser deployment without external paid APIs.
+A production-ready AI workflow suite powered by open-weights Small Language Models (SLMs). This toolkit demonstrates role conditioning, schema-enforced JSON extraction, code debugging, and interactive browser deployment without relying on closed paid APIs.
 
 ---
 
