@@ -21,3 +21,69 @@ A lightweight, production-ready AI workflow suite powered by open-weights Small 
 ---
 
 ## 🏗️ System Architecture
+
+User Input / Web UI (Gradio)
+│
+▼
+ChatML Prompt Template Engine (Roles, Contexts, Constraints)
+│
+▼
+Hugging Face Pipeline (SmolLM2-135M-Instruct)
+│  ├── Temperature Calibration (T = 0.2)
+│  ├── Nucleus Sampling (Top-p = 0.9)
+│  └── BPE Tokenizer Decoding
+▼
+Clean Structured Output (JSON / Formatted Text / Code)
+
+
+---
+
+## ⚙️ Installation & Setup
+
+### Option 1: Local Setup
+
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/KunalRawat10/ai-productivity-toolkit.git](https://github.com/KunalRawat10/ai-productivity-toolkit.git)
+   cd ai-productivity-toolkit
+   
+2. Create a virtual environment & install dependencies:
+
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install torch transformers accelerate gradio
+
+
+3. Run the application:
+4. 
+python toolkit.py
+
+Option 2: Google Colab (Zero Installation)
+Run the interactive notebook directly in your browser:
+
+from toolkit import AIProductivityToolkit
+
+# Initialize toolkit
+toolkit = AIProductivityToolkit()
+
+# 1. Executive Summarization
+summary = toolkit.summarize_executive("Your long technical paper text here...")
+print(summary)
+
+# 2. Structured JSON Entity Extraction
+raw_bio = "Kunal Rawat is an AIML engineer with 2 years of experience in PyTorch and LangChain."
+entities = toolkit.extract_structured_entities(raw_bio)
+print(entities)
+
+# 3. Code Refactoring
+buggy_code = "def add_item(val, lst=[]): lst.append(val); return lst"
+fixed_code = toolkit.code_debugger_refactor(buggy_code, "Default mutable argument bug")
+print(fixed_code)
+
+👨‍💻 Author
+Kunal Rawat
+GitHub: @KunalRawat10
+LinkedIn: Kunal Rawat
+
+📄 License
+This project is licensed under the MIT License - see the LICENSE file for details.
