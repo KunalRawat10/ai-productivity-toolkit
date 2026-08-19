@@ -22,7 +22,6 @@ A lightweight, production-ready AI workflow suite powered by open-weights Small 
 
 ## 🏗️ System Architecture
 
-## 🏗️ System Architecture
 
 ```text
 User Input / Web UI (Gradio)
@@ -38,7 +37,7 @@ Hugging Face Pipeline (SmolLM2-135M-Instruct)
         │
         ▼
 Clean Structured Output (JSON / Formatted Text / Code)
-
+```
 
 ---
 
